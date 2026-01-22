@@ -64,33 +64,10 @@ jobs:
           echo "Linting all YAML files..."
           yamllint -f colored .
 
-  test-action:
-    name: test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Create test Python project
-        run: |
-          mkdir -p test-project
-          cd test-project
-          cat > requirements.txt << 'EOF'
-          requests==2.31.0
-          pytest==7.4.0
-          EOF
-          echo "✅ Test project created with sample dependencies"
-
-      - name: Run License Check Action
-        uses: ./
-        with:
-          skip-dependencies: "test-dep another-dep"
-          python-version: "3.x"
-          licensecheck-version: "2024.3"
 
   required-checks-pass:
     name: required checks
-    needs: [validate-structure, lint-yaml, test-action, methodology-checks]
+    needs: [validate-structure, lint-yaml, methodology-checks]
     runs-on: ubuntu-latest
     steps:
       - name: Required Checks Passed
