@@ -20,7 +20,7 @@ inputs:
     required: false
     default: "Proprietary"
   uv-groups:
-    description: "UV dependency groups to exclude (e.g., 'dev' to exclude development dependencies)"
+    description: "UV dependency groups to include (e.g., 'dev' to include development dependencies)"
     required: false
     default: "dev"
   working-directory:
