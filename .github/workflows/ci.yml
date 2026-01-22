@@ -89,7 +89,7 @@ jobs:
           licensecheck-version: "2024.3"
 
   required-checks-pass:
-    name: Required Checks Pass
+    name: required checks
     needs: [validate-structure, lint-yaml, test-action, methodology-checks]
     runs-on: ubuntu-latest
     steps:
