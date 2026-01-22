@@ -9,7 +9,7 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
+  issues: write
 
 jobs:
   license-check:
@@ -22,3 +22,5 @@ jobs:
       - name: Run License Check
         uses: ensembleip/license-check@v1
         # All inputs are optional - defaults will be used if not specified
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}

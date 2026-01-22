@@ -7,6 +7,10 @@ inputs:
     description: "Space-separated list of dependencies to skip during license check"
     required: false
     default: "search_backend ipllm data-schema bql model-ranktriever majestic-tokenizer"
+  github-token:
+    description: "Token used to create/update the pull request comment (recommended: secrets.GITHUB_TOKEN)"
+    required: false
+    default: ""
   python-version:
     description: "Python version to use for running licensecheck"
     required: false
@@ -76,8 +80,14 @@ runs:
       env:
         COMMENT_MARKER: "<!-- license-check-action -->"
       with:
-        github-token: ${{ github.token }}
+        github-token: ${{ inputs.github-token || github.token }}
         script: |
+          const token = process.env.INPUT_GITHUB_TOKEN;
+          if (!token) {
+            core.warning("license-check: No GitHub token available; skipping PR comment. Pass `with: github-token: ${{ secrets.GITHUB_TOKEN }}` and set workflow permissions `issues: write`.");
+            return;
+          }
+
           const output = process.env.LICENSE_OUTPUT;
           const msgMarker = process.env.COMMENT_MARKER;
           const owner = context.repo.owner;
@@ -87,39 +97,43 @@ runs:
           // Build comment body
           const commentBody = `${msgMarker}\n## License Check Results\n\n\`\`\`\n${output}\n\`\`\``;
 
-          // Get all comments with pagination
-          const comments = await github.paginate(github.rest.issues.listComments, {
-            owner,
-            repo,
-            issue_number: prNumber,
-            per_page: 100
-          });
-
-          // Find existing license check comment
-          const existingComment = comments.find(comment =>
-            comment.body && comment.body.includes(msgMarker)
-          );
-
-          if (existingComment) {
-            // Update existing comment
-            core.info("Updating existing license check comment...");
-            await github.rest.issues.updateComment({
-              owner,
-              repo,
-              comment_id: existingComment.id,
-              body: commentBody
-            });
-            core.info("Existing comment updated.");
-          } else {
-            // Create new comment
-            core.info("Creating new license check comment...");
-            await github.rest.issues.createComment({
+          try {
+            // Get all comments with pagination
+            const comments = await github.paginate(github.rest.issues.listComments, {
               owner,
               repo,
               issue_number: prNumber,
-              body: commentBody
+              per_page: 100
             });
-            core.info("New comment created.");
+
+            // Find existing license check comment
+            const existingComment = comments.find(comment =>
+              comment.body && comment.body.includes(msgMarker)
+            );
+
+            if (existingComment) {
+              // Update existing comment
+              core.info("Updating existing license check comment...");
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existingComment.id,
+                body: commentBody
+              });
+              core.info("Existing comment updated.");
+            } else {
+              // Create new comment
+              core.info("Creating new license check comment...");
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: prNumber,
+                body: commentBody
+              });
+              core.info("New comment created.");
+            }
+          } catch (err) {
+            core.warning(`license-check: Unable to post PR comment (${err?.status || "unknown status"}): ${err?.message || err}`);
           }
 
 branding:
