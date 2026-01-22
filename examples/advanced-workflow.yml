@@ -1,0 +1,40 @@
+# Example: Advanced License Check Workflow with Custom Configuration
+# Copy this file to .github/workflows/license-check.yml in your repository
+
+name: License Check
+
+on:
+  pull_request:
+    branches: [ main, master, develop ]
+  push:
+    branches: [ main, master ]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  license-check:
+    name: Check Dependency Licenses
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Run License Check
+        uses: ensembleip/license-check@v1
+        with:
+          # Skip internal/proprietary packages
+          skip-dependencies: "company-core company-utils company-models internal-auth"
+          
+          # Allow multiple license types
+          allowed-licenses: "MIT,Apache-2.0,BSD-2-Clause,BSD-3-Clause,ISC,Proprietary"
+          
+          # Exclude development and test dependencies
+          uv-groups: "dev,test,docs"
+          
+          # Use specific Python version
+          python-version: "3.11"
+          
+          # Pin licensecheck version for reproducibility
+          licensecheck-version: "2024.3"

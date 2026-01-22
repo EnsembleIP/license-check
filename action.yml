@@ -1,0 +1,127 @@
+name: "License Check"
+description: "Validates dependency licenses and posts results to pull requests"
+author: "EnsembleIP"
+
+inputs:
+  skip-dependencies:
+    description: "Space-separated list of dependencies to skip during license check"
+    required: false
+    default: "search_backend ipllm data-schema bql model-ranktriever majestic-tokenizer"
+  python-version:
+    description: "Python version to use for running licensecheck"
+    required: false
+    default: "3.x"
+  licensecheck-version:
+    description: "Version of licensecheck to install"
+    required: false
+    default: "2024.3"
+  allowed-licenses:
+    description: "Comma-separated list of allowed license types (e.g., 'Proprietary,MIT,Apache-2.0')"
+    required: false
+    default: "Proprietary"
+  uv-groups:
+    description: "UV dependency groups to exclude (e.g., 'dev' to exclude development dependencies)"
+    required: false
+    default: "dev"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Install licensecheck
+      shell: bash
+      run: |
+        pip install licensecheck==${{ inputs.licensecheck-version }}
+
+    - name: Run License Check
+      id: license-check
+      shell: bash
+      run: |
+        echo "Running license check..."
+        
+        # Build the licensecheck command
+        CMD="licensecheck -l ${{ inputs.allowed-licenses }}"
+        
+        # Add UV groups if specified
+        if [ -n "${{ inputs.uv-groups }}" ]; then
+          CMD="$CMD -u uv:${{ inputs.uv-groups }}"
+        fi
+        
+        # Add skip dependencies if specified
+        if [ -n "${{ inputs.skip-dependencies }}" ]; then
+          CMD="$CMD --skip-dependencies ${{ inputs.skip-dependencies }}"
+        fi
+        
+        # Run the command and capture output
+        echo "Executing: $CMD"
+        OUTPUT=$(eval "$CMD" 2>&1 || true)
+        
+        # Save output to environment variable for PR comment
+        echo "LICENSE_OUTPUT<<EOF" >> $GITHUB_ENV
+        echo "$OUTPUT" >> $GITHUB_ENV
+        echo "EOF" >> $GITHUB_ENV
+        
+        # Also output to step output
+        echo "license-output<<EOF" >> $GITHUB_OUTPUT
+        echo "$OUTPUT" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+    - name: Comment PR
+      uses: actions/github-script@v7
+      if: github.event_name == 'pull_request'
+      env:
+        COMMENT_MARKER: "<!-- license-check-action -->"
+      with:
+        github-token: ${{ github.token }}
+        script: |
+          const output = process.env.LICENSE_OUTPUT;
+          const msgMarker = process.env.COMMENT_MARKER;
+          const owner = context.repo.owner;
+          const repo = context.repo.repo;
+          const prNumber = context.issue.number;
+          
+          // Build comment body
+          const commentBody = `${msgMarker}\n## License Check Results\n\n\`\`\`\n${output}\n\`\`\``;
+          
+          // Get all comments with pagination
+          const comments = await github.paginate(github.rest.issues.listComments, {
+            owner,
+            repo,
+            issue_number: prNumber,
+            per_page: 100
+          });
+          
+          // Find existing license check comment
+          const existingComment = comments.find(comment =>
+            comment.body && comment.body.includes(msgMarker)
+          );
+          
+          if (existingComment) {
+            // Update existing comment
+            core.info("Updating existing license check comment...");
+            await github.rest.issues.updateComment({
+              owner,
+              repo,
+              comment_id: existingComment.id,
+              body: commentBody
+            });
+            core.info("Existing comment updated.");
+          } else {
+            // Create new comment
+            core.info("Creating new license check comment...");
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: prNumber,
+              body: commentBody
+            });
+            core.info("New comment created.");
+          }
+
+branding:
+  icon: "shield"
+  color: "green"

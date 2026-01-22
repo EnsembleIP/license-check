@@ -1,0 +1,97 @@
+name: ci
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  methodology-checks:
+    name: methodology checks
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Run TBD Methodology Checks
+        uses: ensembleip/tbd-methodology-checks@v1
+
+  validate-structure:
+    name: validate structure
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check action.yml exists
+        run: |
+          if [ ! -f "action.yml" ]; then
+            echo "❌ Error: action.yml file not found in repository root"
+            exit 1
+          fi
+          echo "✅ action.yml file exists"
+
+      - name: Check required files exist
+        run: |
+          required_files=("README.md" "LICENSE" "RELEASING.md")
+          for file in "${required_files[@]}"; do
+            if [ ! -f "$file" ]; then
+              echo "❌ Error: $file not found"
+              exit 1
+            fi
+            echo "✅ $file exists"
+          done
+
+  lint-yaml:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install yamllint
+        run: pip install yamllint
+
+      - name: Run yamllint
+        run: |
+          echo "Linting all YAML files..."
+          yamllint -f colored .
+
+  test-action:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create test Python project
+        run: |
+          mkdir -p test-project
+          cd test-project
+          cat > requirements.txt << 'EOF'
+          requests==2.31.0
+          pytest==7.4.0
+          EOF
+          echo "✅ Test project created with sample dependencies"
+
+      - name: Run License Check Action
+        uses: ./
+        with:
+          skip-dependencies: "test-dep another-dep"
+          python-version: "3.x"
+          licensecheck-version: "2024.3"
+
+  required-checks-pass:
+    name: Required Checks Pass
+    needs: [validate-structure, lint-yaml, test-action, methodology-checks]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Required Checks Passed
+        run: echo "✅ All required checks passed"
