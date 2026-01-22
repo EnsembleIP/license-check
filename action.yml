@@ -42,29 +42,29 @@ runs:
       shell: bash
       run: |
         echo "Running license check..."
-        
+
         # Build the licensecheck command
         CMD="licensecheck -l ${{ inputs.allowed-licenses }}"
-        
+
         # Add UV groups if specified
         if [ -n "${{ inputs.uv-groups }}" ]; then
           CMD="$CMD -u uv:${{ inputs.uv-groups }}"
         fi
-        
+
         # Add skip dependencies if specified
         if [ -n "${{ inputs.skip-dependencies }}" ]; then
           CMD="$CMD --skip-dependencies ${{ inputs.skip-dependencies }}"
         fi
-        
+
         # Run the command and capture output
         echo "Executing: $CMD"
         OUTPUT=$(eval "$CMD" 2>&1 || true)
-        
+
         # Save output to environment variable for PR comment
         echo "LICENSE_OUTPUT<<EOF" >> $GITHUB_ENV
         echo "$OUTPUT" >> $GITHUB_ENV
         echo "EOF" >> $GITHUB_ENV
-        
+
         # Also output to step output
         echo "license-output<<EOF" >> $GITHUB_OUTPUT
         echo "$OUTPUT" >> $GITHUB_OUTPUT
@@ -83,10 +83,10 @@ runs:
           const owner = context.repo.owner;
           const repo = context.repo.repo;
           const prNumber = context.issue.number;
-          
+
           // Build comment body
           const commentBody = `${msgMarker}\n## License Check Results\n\n\`\`\`\n${output}\n\`\`\``;
-          
+
           // Get all comments with pagination
           const comments = await github.paginate(github.rest.issues.listComments, {
             owner,
@@ -94,12 +94,12 @@ runs:
             issue_number: prNumber,
             per_page: 100
           });
-          
+
           // Find existing license check comment
           const existingComment = comments.find(comment =>
             comment.body && comment.body.includes(msgMarker)
           );
-          
+
           if (existingComment) {
             // Update existing comment
             core.info("Updating existing license check comment...");
