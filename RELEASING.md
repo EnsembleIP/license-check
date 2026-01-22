@@ -7,7 +7,7 @@ GitHub Actions references use Git refs. For example, `uses: ensembleip/license-c
 Create a semver tag for the release, and move the major tag to the same commit:
 
 ```bash
-git checkout main
+git checkout master
 git pull
 
 # Create an immutable semver tag for this release
