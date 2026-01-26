@@ -11,7 +11,7 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
+  issues: write
 
 jobs:
   license-check:
@@ -24,13 +24,14 @@ jobs:
       - name: Run License Check
         uses: ensembleip/license-check@v1
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           # Skip internal/proprietary packages
           skip-dependencies: "company-core company-utils company-models internal-auth"
 
           # Allow multiple license types
           allowed-licenses: "MIT,Apache-2.0,BSD-2-Clause,BSD-3-Clause,ISC,Proprietary"
 
-          # Exclude development and test dependencies
+          # Include development and test dependencies
           uv-groups: "dev,test,docs"
 
           # Use specific Python version
