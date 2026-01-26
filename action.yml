@@ -23,6 +23,10 @@ inputs:
     description: "UV dependency groups to exclude (e.g., 'dev' to exclude development dependencies)"
     required: false
     default: "dev"
+  working-directory:
+    description: "Working directory to run the license check in"
+    required: false
+    default: "."
 
 runs:
   using: "composite"
@@ -41,6 +45,7 @@ runs:
       id: license-check
       shell: bash
       run: |
+        cd ${{ inputs.working-directory }}
         echo "Running license check..."
 
         # Build the licensecheck command
