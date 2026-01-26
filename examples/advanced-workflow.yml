@@ -19,12 +19,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Run License Check
         uses: ensembleip/license-check@v1
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
           # Skip internal/proprietary packages
           skip-dependencies: "company-core company-utils company-models internal-auth"
 
