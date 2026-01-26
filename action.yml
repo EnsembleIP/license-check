@@ -45,7 +45,7 @@ runs:
       id: license-check
       shell: bash
       run: |
-        cd ${{ inputs.working-directory }}
+        cd "${{ inputs.working-directory }}"
         echo "Running license check..."
 
         # Build the licensecheck command
