@@ -9,7 +9,7 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
+  issues: write
 
 jobs:
   license-check:
@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Run License Check
         uses: ensembleip/license-check@v1
