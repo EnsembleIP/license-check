@@ -7,7 +7,7 @@ This repo provides a reusable **GitHub Action** that validates dependency licens
 - **Validates dependency licenses** using the `licensecheck` tool
 - **Posts results to PR comments** with automatic create/update behavior
 - **Highly configurable** with customizable allowed licenses, skip lists, and more
-- **Supports UV dependency groups** to exclude dev dependencies
+- **Supports UV dependency groups** to include dev dependencies
 - **Automatic comment management** - updates existing comments instead of creating duplicates
 
 The action is implemented as a composite action using `actions/github-script@v7`.
@@ -52,7 +52,7 @@ jobs:
 | `python-version` | Python version to use for running licensecheck | No | `3.x` |
 | `licensecheck-version` | Version of licensecheck to install | No | `2024.3` |
 | `allowed-licenses` | Comma-separated list of allowed license types | No | `Proprietary` |
-| `uv-groups` | UV dependency groups to exclude (e.g., 'dev' to exclude development dependencies) | No | `dev` |
+| `uv-groups` | UV dependency groups to include (e.g., 'dev' to include development dependencies) | No | `dev` |
 
 ## How It Works
 
@@ -62,7 +62,7 @@ The action performs the following steps:
 2. **Installs licensecheck** at the specified version
 3. **Runs license check** with the configured parameters:
    - Checks against allowed licenses
-   - Excludes specified UV dependency groups
+   - Includes specified UV dependency groups
    - Skips specified dependencies
 4. **Posts results to PR** as a comment (creates new or updates existing)
 
@@ -116,13 +116,13 @@ Pin to a specific licensecheck version:
 
 ### Different UV Groups
 
-Exclude different dependency groups:
+Include different dependency groups:
 
 ```yaml
 - name: License Check
   uses: ensembleip/license-check@v1
   with:
-    uv-groups: "dev,test"
+    uv-groups: "dev,gpu"
 ```
 
 ## Example PR Comment

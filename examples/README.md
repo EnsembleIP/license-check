@@ -25,7 +25,6 @@ A fully customized configuration with all available options.
 **Use this when:**
 - You need to skip custom internal packages
 - You want to allow multiple license types
-- You need to exclude specific dependency groups
 - You want to pin specific versions
 
 **To use:**
@@ -78,18 +77,16 @@ allowed-licenses: "MIT,Apache-2.0,Proprietary"
 
 ### UV Groups
 
-Exclude dependency groups (for projects using UV):
+Include dependency groups (for projects using UV):
 
 ```yaml
 with:
-  uv-groups: "dev,test"
+  uv-groups: "dev,gpu"
 ```
 
-**Common groups to exclude:**
+**Common groups to include:**
 - `dev` - Development dependencies
-- `test` - Testing dependencies
-- `docs` - Documentation dependencies
-- `lint` - Linting tools
+- `gpu` - Packages that require are GPU
 
 ### Python Version
 
