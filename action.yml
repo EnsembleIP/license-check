@@ -63,7 +63,7 @@ runs:
 
         # Run the command and capture output
         echo "Executing: $CMD"
-        OUTPUT=$(eval "$CMD" 2>&1 || true)
+        OUTPUT=$(eval "$CMD" || true)
 
         # Save output to environment variable for PR comment
         echo "LICENSE_OUTPUT<<EOF" >> $GITHUB_ENV
